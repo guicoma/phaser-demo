@@ -4,6 +4,7 @@
 	<meta charset="UTF-8" />
     <title>Phaser - Making your first game, part 9</title>
 	<script type="text/javascript" src="js/phaser.min.js"></script>
+	<script type="text/javascript" src="js/hammer.min.js"></script>
     <style type="text/css">
         body {
             margin: 0;
@@ -34,6 +35,24 @@ var score = 0;
 var scoreText;
 
 function create() {
+	var myElement = document.getElementsByTagName('body')[0];
+	var mc = new Hammer.Manager(myElement);
+	mc.add( new Hammer.Tap({ event: 'doubletap', taps: 2 }) );
+	
+	
+	// We create a manager object, which is the same as Hammer(), but without the presetted recognizers. 
+	var mc = new Hammer.Manager(myElement);
+
+
+	// Tap recognizer with minimal 2 taps
+	mc.add( new Hammer.Tap({ event: 'doubletap', taps: 2 }) );
+	// Single tap recognizer
+	mc.add( new Hammer.Tap({ event: 'singletap' }) );
+
+	mc.on("doubletap", jumpAction);
+	
+	
+	
 
     //  We're going to be using physics, so enable the Arcade Physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -103,7 +122,7 @@ function create() {
     //  Our controls.
     cursors = game.input.keyboard.createCursorKeys();
 	
-	game.input.onTap.add(jumpAction,this)
+	//game.input.onTap.add(jumpAction,this)
     
 }
 
@@ -120,33 +139,49 @@ function update() {
     player.body.velocity.x = 0;
 
 	if (game.input.activePointer.isDown) {
+		console.log(game.input.activePointer.x, player.body.x);
+		if (game.input.activePointer.x > player.body.x+15) {
 
-        //  Move to the right
-        player.body.velocity.x = 150;
+	        //  Move to the right
+	        player.body.velocity.x = 150;
 
-        player.animations.play('right');
+	        player.animations.play('right');
+		} else if (game.input.activePointer.x < player.body.x+14) {
+
+	        //  Move to the left
+	        player.body.velocity.x = -150;
+
+	        player.animations.play('left');
+		} else {
+	        //  Stand still
+	        player.animations.stop();
+
+	        player.frame = 4;
+		}
+	} else {
+	    if (cursors.left.isDown)
+	    {
+	        //  Move to the left
+	        player.body.velocity.x = -150;
+
+	        player.animations.play('left');
+	    }
+	    else if (cursors.right.isDown)
+	    {
+	        //  Move to the right
+	        player.body.velocity.x = 150;
+
+	        player.animations.play('right');
+	    }
+	    else
+	    {
+	        //  Stand still
+	        player.animations.stop();
+
+	        player.frame = 4;
+	    }	
 	}
-    if (cursors.left.isDown)
-    {
-        //  Move to the left
-        player.body.velocity.x = -150;
-
-        player.animations.play('left');
-    }
-    else if (cursors.right.isDown)
-    {
-        //  Move to the right
-        player.body.velocity.x = 150;
-
-        player.animations.play('right');
-    }
-    else
-    {
-        //  Stand still
-        player.animations.stop();
-
-        player.frame = 4;
-    }
+    
     
     //  Allow the player to jump if they are touching the ground.
     if (cursors.up.isDown && player.body.touching.down)
